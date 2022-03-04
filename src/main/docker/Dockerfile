@@ -15,6 +15,7 @@ ENV JAVA_APPLICATION=${ARG_JAVA_APPLICATION} \
     DOCKER_JAVA_OPTS="-XX:+UseContainerSupport -XX:InitialRAMPercentage=75.0 -XX:MaxRAMPercentage=75.0" \
     PAYARA_JAVA_OPTS="" \
     PAYARA_ARGUMENTS="--disablephonehome --enablehealthcheck true --nocluster --nohostaware --addlibs $ARG_JAVA_APPLICATION_HOME/cnj-payara-opentracing-jaeger.jar" \
+    PAYARA_LOGGING_FORMAT="JSON" \
     WAIT_FOR_URLS="" \
     WAIT_FOR_ARGUMENTS="-i 5"
 
