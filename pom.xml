@@ -8,7 +8,7 @@
     <description>Cloud native Java backend using OpenTracing via Jaeger based on Eclipse Microprofile</description>
     <properties>
         <!-- new Maven version management -->
-        <revision>2.0.0</revision>
+        <revision>2.0.1</revision>
         <sha1></sha1>
         <changelist></changelist>
         <!-- common properties -->
@@ -18,7 +18,7 @@
         <java.version>11</java.version>
         <jakartaee.version>9.1.0</jakartaee.version>
         <payara.version>5.2022.1</payara.version>
-        <payara.opentracing.jaeger.version>1.0.0</payara.opentracing.jaeger.version>
+        <payara.opentracing.jaeger.version>1.0.1</payara.opentracing.jaeger.version>
         <microprofile.version>4.1</microprofile.version>
         <!-- common logging dependencies -->
         <slf4j.version>1.7.32</slf4j.version>

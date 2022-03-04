@@ -2,5 +2,5 @@ apiVersion: v2
 name: cnj-tracing-backend-micro
 description: "${project.description}"
 type: application
-version: 4.0.0
+version: ${revision}
 appVersion: "${project.version}"

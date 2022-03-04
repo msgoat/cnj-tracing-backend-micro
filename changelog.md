@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.1] - 2022-03-04
+### Added
+### Changed
+- fixed configuration of readiness and liveness probes in Helm chart
+- fixed application startup failures due to racing condition during OpenTracing Tracer registration
+- synchronized Helm Chart version with project revision
+
 ## [2.0.0] - 2022-03-04
 ### Added
 ### Changed
