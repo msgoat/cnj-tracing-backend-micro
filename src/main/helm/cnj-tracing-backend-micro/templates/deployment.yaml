@@ -1,0 +1,103 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "cnj-tracing-backend-micro.fullname" . }}
+  labels:
+    {{- include "cnj-tracing-backend-micro.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.pod.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "cnj-tracing-backend-micro.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.metrics.enabled }}
+      {{- if not .Values.metrics.serviceMonitor.enabled }}
+        prometheus.io/scrape: "true"
+        prometheus.io/path: {{ .Values.metrics.path }}
+        prometheus.io/port: "8080"
+      {{- end }}
+      {{- end }}
+     labels:
+        {{- include "cnj-tracing-backend-micro.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.pod.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "cnj-tracing-backend-micro.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.pod.securityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.container.main.securityContext | nindent 12 }}
+          image: "{{ .Values.container.main.image.repository }}:{{ .Values.container.main.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.container.main.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.container.main.ports.http.number }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.container.main.probes.liveness.path }}
+              port: http
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.container.main.probes.readiness.path }}
+              port: http
+          resources:
+            {{- toYaml .Values.container.main.resources | nindent 12 }}
+          env:
+            - name: MP_JWT_VERIFY_PUBLICKEY_LOCATION
+              value: {{ .Values.security.oidc.jwksUri | quote }}
+            - name: MP_JWT_VERIFY_ISSUER
+              value: {{ .Values.security.oidc.issuer | quote }}
+            - name: CLOUDTRAIN_SERVICES_GRANTEDPERMISSIONS_MP_REST_URL
+              value: {{ .Values.downstream.rest.url | quote }}
+            - name: CLOUTRAIN_COMMON_REST_TRACE_ENABLED
+              value: "true"
+            - name: POSTGRES_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.persistence.postgres.secret.name }}
+                  key: {{ .Values.persistence.postgres.secret.keys.user }}
+            - name: POSTGRES_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.persistence.postgres.secret.name }}
+                  key: {{ .Values.persistence.postgres.secret.keys.password }}
+            - name: POSTGRES_DB_NAME
+              value: {{ .Values.persistence.postgres.database }}
+            - name: POSTGRES_DB_HOST
+              value: {{ .Values.persistence.postgres.host }}
+            - name: POSTGRES_DB_PORT
+              value: {{ .Values.persistence.postgres.port | quote }}
+            - name: JAEGER_ENABLED
+              value: {{ .Values.tracing.enabled | quote }}
+            - name: JAEGER_SERVICE_NAME
+              value: {{ .Values.tracing.jaeger.service.name | quote }}
+            - name: JAEGER_AGENT_HOST
+              value: {{ .Values.tracing.jaeger.agent.host | quote }}
+            - name: JAEGER_AGENT_PORT
+              value: {{ .Values.tracing.jaeger.agent.port | quote }}
+            - name: JAEGER_REPORTER_LOG_SPANS
+              value: {{ .Values.tracing.jaeger.logSpans | quote }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="warn" monitorInterval="10">
+	<Appenders>
+		<!-- Console with text-based layout -->
+		<Console name="TextConsole">
+			<ThresholdFilter level="debug" />
+			<PatternLayout pattern="%d{DEFAULT} [%p] [%t] [%C:%M:%line] %m%n" />
+		</Console>
+	</Appenders>
+	<Loggers>
+		<Root level="info">
+			<AppenderRef ref="TextConsole" />
+		</Root>
+	</Loggers>
+</Configuration>

@@ -1,0 +1,127 @@
+# Default values for cnj-tracing-backend-micro.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+nameOverride: ""
+fullnameOverride: ""
+
+pod:
+  replicaCount: 1
+  imagePullSecrets: []
+  securityContext: {}
+    # fsGroup: 2000
+  annotations: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+container:
+  main:
+    image:
+      repository: ${docker.image.name}
+      tag: ${project.version}
+      pullPolicy: IfNotPresent
+    ports:
+      http:
+        number: 8080
+    probes:
+      readiness:
+        path: /api/v1/probes/readiness
+      liveness:
+        path: /api/v1/probes/liveness
+    resources:
+      limits:
+        # since JVMs tend to spike during startup we don't provide a cpu limit
+        # cpu: 500m
+        memory: 1Gi
+      requests:
+        cpu: 250m
+        memory: 756Mi
+    securityContext:
+      capabilities:
+        drop:
+          - ALL
+      readOnlyRootFilesystem: false
+      runAsNonRoot: true
+      privileged: false
+      allowPrivilegeEscalation: false
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  class: traefik
+  type: traefik
+  host: "${k8s.ingress.host}"
+  path: "${k8s.ingress.path}"
+  pathType: Prefix
+  annotations: {}
+
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 4
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+# In managed Kubernetes clusters you should always apply pod disruption budgets
+# to your applications. When applying them, you have to keep in mind that you have to run your
+# application with more than one replica at any time!
+podDisruptionBudget:
+  enabled: false
+  minUnavailable: 1
+  # minAvailable: 1
+
+# security configuration (Open ID Connect)
+security:
+  oidc:
+    jwksUri: "https://oidc.cloudtrain.aws.msgoat.eu/auth/realms/cloudtrain/protocol/openid-connect/certs"
+    issuer: "https://oidc.cloudtrain.aws.msgoat.eu/auth/realms/cloudtrain"
+
+# downstream service configuration
+downstream:
+  rest:
+    url: "http://cnj-tracing-downstream"
+
+# persistence configuration (PostgreSQL)
+persistence:
+  postgres:
+    database: cloudtrain
+    host: cnj-tracing-resources-postgresql
+    port: 5432
+    secret:
+      name: cnj-tracing-resources-postgres
+      keys:
+        user: postgresql-user
+        password: postgresql-password
+
+# metrics configuration
+metrics:
+  # controls if pods are annotated for scraping
+  enabled: true
+  # path to metrics endpoint
+  path: /metrics
+  serviceMonitor:
+    # installs a prometheus-operator service monitor CRD when true
+    enabled: true
+
+# tracing configuration
+tracing:
+  enabled: true
+  jaeger:
+    service:
+      name: cnj-tracing-backend-micro
+    agent:
+      host: jaeger-agent.tracing
+      port: 6831
+    logSpans: false

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://xmlns.jcp.org/xml/ns/persistence"
+             xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence http://xmlns.jcp.org/xml/ns/persistence/persistence_2_2.xsd"
+             version="2.2">
+    <persistence-unit name="CNJ_PERSISTENCE_UNIT" transaction-type="JTA">
+        <jta-data-source>java:global/cnj-postgres-datasource</jta-data-source>
+        <!-- need to add converters from cnj-common-persistence-jpa explicitly! -->
+        <class>group.msg.at.cloud.common.persistence.jpa.convert.LocalDateConverter</class>
+        <class>group.msg.at.cloud.common.persistence.jpa.convert.LocalDateTimeConverter</class>
+        <class>group.msg.at.cloud.common.persistence.jpa.convert.UuidConverter</class>
+        <class>group.msg.at.cloud.common.persistence.jpa.audit.AbstractAuditableEntity</class>
+        <class>group.msg.at.cloud.common.persistence.jpa.audit.AuditableEntityListener</class>
+        <properties>
+            <property name="eclipselink.deploy-on-startup" value="true"/>
+            <property name="eclipselink.jpql.validation" value="JPA 2.1"/>
+            <property name="eclipselink.logging.level" value="FINE"/>
+            <property name="eclipselink.logging.logger" value="JavaLogger"/>
+            <property name="eclipselink.logging.parameters" value="true"/>
+            <property name="eclipselink.target-database" value="PostgreSQL"/>
+        </properties>
+    </persistence-unit>
+</persistence>
