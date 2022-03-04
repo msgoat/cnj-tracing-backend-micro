@@ -5,7 +5,7 @@
     <artifactId>cnj-tracing-backend-micro</artifactId>
     <version>${revision}${changelist}${sha1}</version>
     <packaging>war</packaging>
-    <description>Cloud native Java backend using JPA for persistence based on Eclipse Microprofile</description>
+    <description>Cloud native Java backend using OpenTracing via Jaeger based on Eclipse Microprofile</description>
     <properties>
         <!-- new Maven version management -->
         <revision>2.0.0</revision>
