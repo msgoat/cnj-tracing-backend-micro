@@ -3,7 +3,7 @@
 if [ "${WAIT_FOR_URLS}" -o "${WAIT_FOR_PORTS}" ]
 then
 	echo "Waiting for ..."
-  /wait-for.sh ${WAIT_FOR_ARGUMENTS}
+  ${JAVA_APPLICATION_HOME}/wait-for.sh ${WAIT_FOR_ARGUMENTS}
 fi
 
 if [ "$1" = "start" ]

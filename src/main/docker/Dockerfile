@@ -1,4 +1,4 @@
-FROM eclipse-temurin:11-jre
+FROM eclipse-temurin:11-jre-alpine
 
 LABEL maintainer="michael.theis@msg.group"
 LABEL ${project.groupId}.${project.artifactId}.project="CloudTrain"
@@ -14,17 +14,22 @@ ENV JAVA_APPLICATION=${ARG_JAVA_APPLICATION} \
     EXT_JAVA_OPTS="" \
     DOCKER_JAVA_OPTS="-XX:+UseContainerSupport -XX:InitialRAMPercentage=75.0 -XX:MaxRAMPercentage=75.0" \
     PAYARA_JAVA_OPTS="" \
-    PAYARA_ARGUMENTS="--disablephonehome --enablehealthcheck true --nocluster --nohostaware --addlibs $ARG_JAVA_APPLICATION_HOME/cnj-payara-opentracing-jaeger.jar"
+    PAYARA_ARGUMENTS="--disablephonehome --enablehealthcheck true --nocluster --nohostaware --addlibs $ARG_JAVA_APPLICATION_HOME/cnj-payara-opentracing-jaeger.jar" \
+    WAIT_FOR_URLS="" \
+    WAIT_FOR_ARGUMENTS="-i 5"
 
 EXPOSE 8080
 
-RUN echo "adding run user payara to system" && \
+RUN echo "install missing tool netstat to be able to wait for PostgreSQL" && \
+    apk update && \
+    apk add netcat-openbsd && \
+    echo "adding run user payara to system" && \
     addgroup --gid 1000 --system payara && \
-    adduser --system --disabled-login --disabled-password --ingroup payara --uid 1000 payara
+    adduser -S -D -G payara -u 1000 payara
 
 # copy entrypoint script
 COPY docker-entrypoint.sh /
-COPY wait-for.sh /
+COPY wait-for.sh ${ARG_JAVA_APPLICATION_HOME}/
 
 # copy all build artifacts into application home folder
 COPY *.jar ${ARG_JAVA_APPLICATION_HOME}/
@@ -35,7 +40,7 @@ COPY logging*.properties ${ARG_JAVA_APPLICATION_HOME}/
 RUN echo "allow non-root user to access and execute all copied files" && \
     chown payara:payara /docker-entrypoint.sh && \
     chmod u+x /docker-entrypoint.sh && \
-    chmod u+x /wait-for.sh && \
+    chmod u+x ${ARG_JAVA_APPLICATION_HOME}/wait-for.sh && \
     chown -R payara:payara ${ARG_JAVA_APPLICATION_HOME}
 
 # use user ID instead of user name to allow kubernetes to check non-root users

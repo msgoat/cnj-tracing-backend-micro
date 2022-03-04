@@ -75,7 +75,7 @@ wait_for_url() {
 wait_for_port() {
 
 	HOST=$(printf "%s\n" "$1"| cut -d : -f 1)
-    PORT=$(printf "%s\n" "$1"| cut -d : -f 2)
+  PORT=$(printf "%s\n" "$1"| cut -d : -f 2)
 
 	echo "Checking if ${HOST}:${PORT} is available..."
 
@@ -84,7 +84,7 @@ wait_for_port() {
 
 	until [ $TIME_CONSUMED -gt $TIMEOUT -o $SERVICE_UP -gt 0 ]
 	do
-		nc -z "$HOST" "$PORT" > /dev/null 2>&1
+		nc -z "$HOST" "$PORT"
 		if [ $? -eq 0 ]
 		then
 			SERVICE_UP=1
