@@ -50,9 +50,6 @@ services:
       JAEGER_SERVICE_NAME: "cnj-tracing-backend-spring"
       JAEGER_AGENT_HOST: jaeger
       JAEGER_AGENT_PORT: 6831
-      JAEGER_REPORTER_LOG_SPANS: "false"
-      JAEGER_SAMPLER_TYPE: "const"
-      JAEGER_SAMPLER_PARAM: "1.0"
 
     depends_on:
       - downstream
