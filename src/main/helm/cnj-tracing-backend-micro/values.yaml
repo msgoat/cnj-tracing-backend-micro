@@ -100,7 +100,7 @@ persistence:
     host: cnj-tracing-resources-postgresql
     port: 5432
     secret:
-      name: cnj-tracing-resources-postgres
+      name: cnj-tracing-resources-postgres-custom
       keys:
         user: postgresql-user
         password: postgresql-password

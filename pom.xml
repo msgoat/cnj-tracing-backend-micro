@@ -8,7 +8,7 @@
     <description>Cloud native Java backend using OpenTracing via Jaeger based on Eclipse Microprofile</description>
     <properties>
         <!-- new Maven version management -->
-        <revision>2.1.0</revision>
+        <revision>2.1.1</revision>
         <sha1></sha1>
         <changelist></changelist>
         <!-- common properties -->

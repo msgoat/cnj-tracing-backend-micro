@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.1] - 2022-11-14
+### Added
+### Changed
+- fixed broken helm configuration of postgres secret
+
 ## [2.1.0] - 2022-08-26
 ### Added
 ### Changed
