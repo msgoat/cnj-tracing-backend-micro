@@ -9,6 +9,11 @@ env:
     SONARQUBE_TOKEN: "cloudtrain-codebuild-sonarqube:token"
     DOCKERHUB_USER: "cloudtrain-codebuild-dockerhub:docker-user"
     DOCKERHUB_PAT: "cloudtrain-codebuild-dockerhub:docker-pat"
+    TEST_OIDC_CLIENT_CLIENT_ID: "cloudtrain-codebuild-common-test:test.oidc.client.clientId"
+    TEST_OIDC_CLIENT_CLIENT_SECRET: "cloudtrain-codebuild-common-test:test.oidc.client.clientSecret"
+    TEST_OIDC_CLIENT_ACCESS_TOKEN_URI: "cloudtrain-codebuild-common-test:test.oidc.client.accessTokenUri"
+    TEST_OIDC_CLIENT_USER: "cloudtrain-codebuild-common-test:test.oidc.client.user"
+    TEST_OIDC_CLIENT_PASSWORD: "cloudtrain-codebuild-common-test:test.oidc.client.password"
 
 phases:
   install:
@@ -31,16 +36,17 @@ phases:
     on-failure: ABORT
     commands:
       - echo "Running phase build"
-      - echo "Running commit-stage of the build using branch [${CODEBUILD_WEBHOOK_HEAD_REF:11}] and short commit hash [${CODEBUILD_RESOLVED_SOURCE_VERSION:0:8}]"
-      - mvn clean install -f pom.xml -B -ff -e -V -U -P commit-stage -Dchangelist=.${CODEBUILD_WEBHOOK_HEAD_REF:11} -Dsha1=.${CODEBUILD_RESOLVED_SOURCE_VERSION:0:8} -Dsonar.login=$SONARQUBE_TOKEN
+      - export BRANCH=main
+      - echo "Running commit-stage of the build using branch [$BRANCH] and short commit hash [${CODEBUILD_RESOLVED_SOURCE_VERSION:0:8}]"
+      - mvn clean install -f pom.xml -B -ff -e -V -U -P commit-stage -Dchangelist=.$BRANCH -Dsha1=.${CODEBUILD_RESOLVED_SOURCE_VERSION:0:8} -Dsonar.login=$SONARQUBE_TOKEN
       - |-
         if [ "$CLOUDTRAIN_EKS_DEPLOY_ENABLED" == "true" ]
         then
           echo "Authenticate on EKS"
-          aws eks update-kubeconfig --name $CLOUDTRAIN_EKS_CLUSTER_NAME --role $CLOUDTRAIN_EKS_ROLE_ARN
+          aws eks update-kubeconfig --name $CLOUDTRAIN_EKS_CLUSTER_NAME
           kubectl cluster-info
           echo "Running integration-test-stage of the build"
-          mvn clean verify -f pom.xml -B -ff -e -V -U -P integration-test-stage -Dchangelist=.${CODEBUILD_WEBHOOK_HEAD_REF:11} -Dsha1=.${CODEBUILD_RESOLVED_SOURCE_VERSION:0:8}
+          mvn clean verify -f pom.xml -B -ff -e -V -U -P integration-test-stage -Dchangelist=.$BRANCH -Dsha1=.${CODEBUILD_RESOLVED_SOURCE_VERSION:0:8} -Dk8s.cluster.route=$CLOUDTRAIN_EKS_CLUSTER_ROUTE -Dk8s.cluster.namespace=$CLOUDTRAIN_EKS_NAMESPACE -Dk8s.ingress.host=$CLOUDTRAIN_EKS_INGRESS_HOST
         fi
   post_build:
     commands:
