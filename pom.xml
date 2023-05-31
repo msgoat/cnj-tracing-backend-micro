@@ -5,33 +5,35 @@
     <artifactId>cnj-tracing-backend-micro</artifactId>
     <version>${revision}${changelist}${sha1}</version>
     <packaging>war</packaging>
-    <description>Cloud native Java backend using OpenTracing via Jaeger based on Eclipse Microprofile</description>
+    <description>Cloud native Java backend using OpenTelemetry via Jaeger based on Eclipse Microprofile</description>
     <properties>
         <!-- new Maven version management -->
-        <revision>2.1.1</revision>
-        <sha1></sha1>
-        <changelist></changelist>
+        <revision>3.0.0</revision>
+        <sha1>.12345678</sha1>
+        <changelist>.LOCAL</changelist>
         <!-- common properties -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <!-- runtime related properties -->
-        <java.version>11</java.version>
-        <jakartaee.version>9.1.0</jakartaee.version>
-        <payara.version>5.2022.1</payara.version>
-        <payara.opentracing.jaeger.version>1.0.1</payara.opentracing.jaeger.version>
-        <microprofile.version>4.1</microprofile.version>
+        <java.version>17</java.version>
+        <jakartaee.version>10.0.0</jakartaee.version>
+        <payara.version>6.2023.5</payara.version>
+        <microprofile.version>5.0</microprofile.version>
         <!-- common logging dependencies -->
-        <slf4j.version>1.7.32</slf4j.version>
+        <slf4j.version>2.0.6</slf4j.version>
         <!-- common rest dependencies -->
-        <common.rest.version>0.8.0</common.rest.version>
         <!-- common test dependencies -->
         <junit.version>5.8.1</junit.version>
         <restassured.version>3.3.0</restassured.version>
-        <cnj.common.test.version>3.0.1</cnj.common.test.version>
         <!-- common persistence dependencies -->
         <flyway.version>8.5.0</flyway.version>
-        <postgres.jdbc.version>42.3.1</postgres.jdbc.version>
-        <common.persistence.version>0.8.0</common.persistence.version>
+        <postgres.jdbc.version>42.6.0</postgres.jdbc.version>
+        <!-- cloudtrain common dependencies -->
+        <cnj.common.rest.version>1.0.0</cnj.common.rest.version>
+        <cnj.common.persistence.jpa.version>1.0.0</cnj.common.persistence.jpa.version>
+        <cnj.common.observability.version>1.0.0</cnj.common.observability.version>
+        <cnj.common.test.core.version>1.1.0</cnj.common.test.core.version>
+        <cnj.common.test.jakarta.version>1.0.0</cnj.common.test.jakarta.version>
         <!-- docker related properties -->
         <docker.registry.name>docker.cloudtrain.aws.msgoat.eu</docker.registry.name>
         <docker.organization.name>cloudtrain</docker.organization.name>
@@ -41,9 +43,9 @@
         <docker.verbose>true</docker.verbose>
         <docker.test.target.route>http://localhost:38080</docker.test.target.route>
         <!-- kubernetes related properties -->
-        <k8s.cluster.route>https://apps.cloudtrain.aws.msgoat.eu</k8s.cluster.route>
-        <k8s.cluster.namespace>default</k8s.cluster.namespace>
-        <k8s.ingress.host>apps.cloudtrain.aws.msgoat.eu</k8s.ingress.host>
+        <k8s.cluster.route>https://${k8s.ingress.host}</k8s.cluster.route>
+        <k8s.cluster.namespace>cloudtrain</k8s.cluster.namespace>
+        <k8s.ingress.host>train2023-dev.k8s.cloudtrain.aws.msgoat.eu</k8s.ingress.host>
         <k8s.ingress.path>/${k8s.cluster.namespace}/${project.artifactId}</k8s.ingress.path>
         <k8s.test.target.route>${k8s.cluster.route}${k8s.ingress.path}</k8s.test.target.route>
         <!-- pinning versions of common maven plugins -->
@@ -64,7 +66,7 @@
         <maven.war.plugin.version>3.3.2</maven.war.plugin.version>
         <maven.payara.micro.plugin.version>1.4.0</maven.payara.micro.plugin.version>
         <!-- pinning versions of cloud native specific maven plugins -->
-        <maven.compose.plugin.version>3.0.0</maven.compose.plugin.version>
+        <maven.compose.plugin.version>4.0.0</maven.compose.plugin.version>
         <maven.docker.plugin.version>0.37.0</maven.docker.plugin.version>
         <maven.helm.plugin.version>4.0.0</maven.helm.plugin.version>
         <!-- quality assurance properties -->
@@ -76,7 +78,7 @@
     </properties>
     <dependencyManagement>
         <dependencies>
-            <!-- JakartaEE 9 runtime dependencies -->
+            <!-- JakartaEE 10 runtime dependencies -->
             <dependency>
                 <groupId>jakarta.platform</groupId>
                 <artifactId>jakarta.jakartaee-web-api</artifactId>
@@ -149,7 +151,7 @@
         <dependency>
             <groupId>group.msg.at.cloud.common</groupId>
             <artifactId>cnj-common-rest-jakarta</artifactId>
-            <version>0.1.0</version>
+            <version>${cnj.common.rest.version}</version>
         </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>
@@ -161,11 +163,13 @@
             <artifactId>flyway-core</artifactId>
             <version>${flyway.version}</version>
         </dependency>
+        <!--
         <dependency>
             <groupId>group.msg.at.cloud.common</groupId>
             <artifactId>cnj-common-persistence-jakarta</artifactId>
-            <version>${common.persistence.version}</version>
+            <version>${cnj.common.persistence.jpa.version}</version>
         </dependency>
+        -->
         <dependency>
             <groupId>org.eclipse.microprofile.metrics</groupId>
             <artifactId>microprofile-metrics-api</artifactId>
@@ -174,7 +178,7 @@
         <dependency>
             <groupId>group.msg.at.cloud.common</groupId>
             <artifactId>cnj-common-observability-jakarta</artifactId>
-            <version>0.1.0</version>
+            <version>${cnj.common.observability.version}</version>
         </dependency>
         <!-- showcase specific section -->
         <dependency>
@@ -214,13 +218,13 @@
         <dependency>
             <groupId>group.msg.at.cloud.common</groupId>
             <artifactId>cnj-common-test-core</artifactId>
-            <version>0.9.0</version>
+            <version>${cnj.common.test.core.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>group.msg.at.cloud.common</groupId>
             <artifactId>cnj-common-test-jakarta</artifactId>
-            <version>0.1.0</version>
+            <version>${cnj.common.test.jakarta.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -403,6 +407,7 @@
                             </excludes>
                         </configuration>
                     </plugin>
+                    <!--
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-dependency-plugin</artifactId>
@@ -428,6 +433,7 @@
                             </execution>
                         </executions>
                     </plugin>
+                    -->
                     <plugin>
                         <groupId>fish.payara.maven.plugins</groupId>
                         <artifactId>payara-micro-maven-plugin</artifactId>
@@ -466,11 +472,6 @@
                                 <option>
                                     <key>--nohostaware</key>
                                     <value></value>
-                                </option>
-                                <!-- explicitly adding the Jaeger OpenTracing library; embedding in Uber JAR does not work! -->
-                                <option>
-                                    <key>--addlibs</key>
-                                    <value>${project.build.directory}/payara/lib/cnj-payara-opentracing-jaeger.jar</value>
                                 </option>
                             </commandLineOptions>
                         </configuration>
@@ -659,25 +660,6 @@
                                             <artifactId>org.jacoco.agent</artifactId>
                                             <version>${maven.jacoco.plugin.version}</version>
                                             <classifier>runtime</classifier>
-                                        </artifactItem>
-                                    </artifactItems>
-                                    <stripClassifier>true</stripClassifier>
-                                    <stripVersion>true</stripVersion>
-                                    <outputDirectory>${project.build.directory}/docker-resources</outputDirectory>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>copy-payara-custom-libs</id>
-                                <goals>
-                                    <goal>copy</goal>
-                                </goals>
-                                <phase>prepare-package</phase>
-                                <configuration>
-                                    <artifactItems>
-                                        <artifactItem>
-                                            <groupId>group.msg.at.cloud</groupId>
-                                            <artifactId>cnj-payara-opentracing-jaeger</artifactId>
-                                            <version>${payara.opentracing.jaeger.version}</version>
                                         </artifactItem>
                                     </artifactItems>
                                     <stripClassifier>true</stripClassifier>
@@ -899,25 +881,6 @@
                                     <outputDirectory>${project.build.directory}/docker-resources</outputDirectory>
                                 </configuration>
                             </execution>
-                            <execution>
-                                <id>copy-payara-custom-libs</id>
-                                <goals>
-                                    <goal>copy</goal>
-                                </goals>
-                                <phase>prepare-package</phase>
-                                <configuration>
-                                    <artifactItems>
-                                        <artifactItem>
-                                            <groupId>group.msg.at.cloud</groupId>
-                                            <artifactId>cnj-payara-opentracing-jaeger</artifactId>
-                                            <version>${payara.opentracing.jaeger.version}</version>
-                                        </artifactItem>
-                                    </artifactItems>
-                                    <stripClassifier>true</stripClassifier>
-                                    <stripVersion>true</stripVersion>
-                                    <outputDirectory>${project.build.directory}/docker-resources</outputDirectory>
-                                </configuration>
-                            </execution>
                         </executions>
                     </plugin>
                 </plugins>
@@ -928,8 +891,6 @@
         <profile>
             <id>integration-test-stage</id>
             <properties>
-                <k8s.cluster.namespace>cloudtrain-int</k8s.cluster.namespace>
-                <test.target.route>${k8s.test.target.route}</test.target.route>
                 <maven.install.skip>true</maven.install.skip>
             </properties>
             <build>

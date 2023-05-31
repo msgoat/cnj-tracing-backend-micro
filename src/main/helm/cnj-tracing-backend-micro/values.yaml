@@ -5,7 +5,7 @@ nameOverride: ""
 fullnameOverride: ""
 
 pod:
-  replicaCount: 1
+  replicaCount: 2
   imagePullSecrets: []
   securityContext: {}
     # fsGroup: 2000
@@ -85,8 +85,8 @@ podDisruptionBudget:
 # security configuration (Open ID Connect)
 security:
   oidc:
-    jwksUri: "https://oidc.cloudtrain.aws.msgoat.eu/auth/realms/cloudtrain/protocol/openid-connect/certs"
-    issuer: "https://oidc.cloudtrain.aws.msgoat.eu/auth/realms/cloudtrain"
+    jwksUri: "https://oidc.cloudtrain.aws.msgoat.eu/realms/cloudtrain/protocol/openid-connect/certs"
+    issuer: "https://oidc.cloudtrain.aws.msgoat.eu/realms/cloudtrain"
 
 # downstream service configuration
 downstream:

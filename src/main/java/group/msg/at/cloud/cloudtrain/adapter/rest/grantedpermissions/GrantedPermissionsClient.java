@@ -1,5 +1,6 @@
 package group.msg.at.cloud.cloudtrain.adapter.rest.grantedpermissions;
 
+import group.msg.at.cloud.common.observability.rest.trace.RestTraceClientRequestFilter;
 import group.msg.at.cloud.common.rest.jwt.JwtPropagatingClientRequestFilter;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
@@ -25,6 +26,7 @@ import java.util.List;
  */
 @RegisterRestClient(configKey = "cloudtrain.services.grantedpermissions")
 @RegisterProvider(JwtPropagatingClientRequestFilter.class)
+@RegisterProvider(RestTraceClientRequestFilter.class)
 @Path("api/v1/grantedPermissions")
 public interface GrantedPermissionsClient {
 

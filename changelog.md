@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.0] - 2023-05-31
+### Changed
+- upgraded to Java 17
+- upgraded to Jakarta EE 10
+- upgraded to Payara 6.2023.5
+- switched from OpenTracing to OpenTelemetry/MicroProfile Telemetry
+- solved JPA mapping issue in EclipseLink with a local hack (not using cnj-common-persistence-jpa) anymore
+
 ## [2.1.1] - 2022-11-14
 ### Added
 ### Changed

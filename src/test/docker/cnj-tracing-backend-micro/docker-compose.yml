@@ -10,8 +10,6 @@ services:
 
   postgres:
     image: postgres:14-alpine
-    #    ports:
-    #      - "5432:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: changeit
@@ -26,14 +24,17 @@ services:
       retries: 5
 
   jaeger:
-    image: jaegertracing/all-in-one:1.30
+    image: jaegertracing/all-in-one:latest
+    environment:
+      COLLECTOR_OTLP_ENABLED: true
 
   downstream:
     image: docker.cloudtrain.aws.msgoat.eu/cloudtrain/cnj-tracing-downstream:latest
     environment:
-      DOCKER_JAVA_OPTS: "-XX:+UseContainerSupport -Xms1g -Xmx1g"
-      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: https://oidc.cloudtrain.aws.msgoat.eu/auth/realms/cloudtrain/protocol/openid-connect/certs
-      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: https://oidc.cloudtrain.aws.msgoat.eu/auth/realms/cloudtrain
+      DOCKER_JAVA_OPTS: -Xms1g -Xmx1g
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: https://oidc.cloudtrain.aws.msgoat.eu/realms/cloudtrain/protocol/openid-connect/certs
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: https://oidc.cloudtrain.aws.msgoat.eu/realms/cloudtrain
+      MANAGEMENT_OTLP_TRACING_ENDPOINT: "http://jaeger:4318/v1/traces"
     depends_on:
       jaeger:
         condition: service_started
@@ -42,11 +43,13 @@ services:
     image: docker.cloudtrain.aws.msgoat.eu/cloudtrain/cnj-tracing-backend-micro:latest
     ports:
       - "38080:8080"
+      - "38089:8089"
     environment:
-      DOCKER_JAVA_OPTS: -Xms2g -Xmx2g
+      AGENT_JAVA_OPTS: "-javaagent:/home/payara/org.jacoco.agent.jar=output=tcpserver,address=*,port=8089"
+      DOCKER_JAVA_OPTS: -Xms1g -Xmx1g
       PAYARA_LOGGING_FORMAT: "TEXT"
-      MP_JWT_VERIFY_PUBLICKEY_LOCATION: "https://oidc.cloudtrain.aws.msgoat.eu/auth/realms/cloudtrain/protocol/openid-connect/certs"
-      MP_JWT_VERIFY_ISSUER: "https://oidc.cloudtrain.aws.msgoat.eu/auth/realms/cloudtrain"
+      MP_JWT_VERIFY_PUBLICKEY_LOCATION: "https://oidc.cloudtrain.aws.msgoat.eu/realms/cloudtrain/protocol/openid-connect/certs"
+      MP_JWT_VERIFY_ISSUER: "https://oidc.cloudtrain.aws.msgoat.eu/realms/cloudtrain"
       CLOUDTRAIN_COMMON_REST_TRACE_ENABLED: "true"
       CLOUDTRAIN_SERVICES_GRANTEDPERMISSIONS_MP_REST_URL: "http://downstream:8080"
       POSTGRES_DB_USER: postgres
@@ -54,10 +57,7 @@ services:
       POSTGRES_DB_NAME: cloudtrain
       POSTGRES_DB_HOST: postgres
       POSTGRES_DB_PORT: 5432
-      WAIT_FOR_PORTS: "postgres:5432"
-      JAEGER_SERVICE_NAME: "cnj-tracing-backend-spring"
-      JAEGER_AGENT_HOST: jaeger
-      JAEGER_AGENT_PORT: 6831
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://jaeger:4317"
     depends_on:
       downstream:
         condition: service_started

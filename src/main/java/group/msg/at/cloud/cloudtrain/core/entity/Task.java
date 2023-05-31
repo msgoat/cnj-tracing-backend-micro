@@ -1,6 +1,7 @@
 package group.msg.at.cloud.cloudtrain.core.entity;
 
 import group.msg.at.cloud.common.persistence.jpa.audit.AbstractAuditableEntity;
+import group.msg.at.cloud.common.persistence.jpa.convert.UuidConverter;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -31,7 +32,9 @@ public class Task extends AbstractAuditableEntity {
      * Unique identifier of this task.
      */
     @Id
-    @Column(name = "TASK_ID")
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "TASK_ID", columnDefinition = "uuid DEFAULT gen_random_uuid()")
+    // @Convert(converter = UuidConverter.class)
     private UUID id;
 
     /**

@@ -1,2 +1,2 @@
-# enable request tracing to activate OpenTracing extension
+# enable request tracing to activate OpenTracing/OpenTelemetry extension
 set-requesttracing-configuration --enabled=true --dynamic=true bootstrap-requesttracing
