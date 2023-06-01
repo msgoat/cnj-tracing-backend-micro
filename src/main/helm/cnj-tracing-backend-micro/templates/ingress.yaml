@@ -1,13 +1,22 @@
-{{- if and .Values.ingress.enabled (eq .Values.ingress.type "default") -}}
-{{- $fullName := include "cnj-tracing-backend-micro.fullname" . -}}
+{{- if .Values.ingress.enabled }}
+{{- $fullName := include "cnj-tracing-backend-micro.fullname" . }}
+{{- if eq .Values.ingress.type "nginx" }}
+---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {{ $fullName }}
   labels:
     {{- include "cnj-tracing-backend-micro.labels" . | nindent 4 }}
-  {{- with .Values.ingress.annotations }}
   annotations:
+  {{- if eq .Values.ingress.pathType "Prefix" }}
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/x-forwarded-prefix: {{ .Values.ingress.path | quote }}
+{{- end }}
+  {{- if .Values.tracing.enabled }}
+    nginx.ingress.kubernetes.io/enable-opentelemetry: "true"
+  {{- end }}
+  {{- with .Values.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
@@ -16,11 +25,48 @@ spec:
     - host: {{ .Values.ingress.host | quote }}
       http:
         paths:
+{{- if eq .Values.ingress.pathType "Prefix" }}
+          - path: {{ .Values.ingress.path }}(/|$)(.*)
+{{- else }}
           - path: {{ .Values.ingress.path }}
+{{- end }}
             pathType: {{ .Values.ingress.pathType }}
             backend:
               service:
                 name: {{ $fullName }}
                 port:
                   name: http
+{{- end }}
+{{- if eq .Values.ingress.type "traefik" -}}
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: {{ include "cnj-tracing-backend-micro.fullname" . }}
+  labels:
+    {{- include "cnj-tracing-backend-micro.labels" . | nindent 4 }}
+spec:
+  entryPoints:
+    - web
+  routes:
+    - kind: Rule
+      match: Host(`{{ .Values.ingress.host }}`) && PathPrefix(`{{ .Values.ingress.path }}`)
+      middlewares:
+        - name: {{ include "cnj-tracing-backend-micro.fullname" . }}-stripprefix
+      services:
+        - kind: Service
+          name: {{ include "cnj-tracing-backend-micro.fullname" . }}
+          port: {{ .Values.service.port }}
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: {{ include "cnj-tracing-backend-micro.fullname" . }}-stripprefix
+  labels:
+  {{- include "cnj-tracing-backend-micro.labels" . | nindent 4 }}
+spec:
+  stripPrefix:
+    prefixes:
+      - {{ .Values.ingress.path }}
+{{- end }}
 {{- end }}
