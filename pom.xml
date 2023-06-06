@@ -64,7 +64,7 @@
         <maven.surefire.plugin.version>3.0.0-M5</maven.surefire.plugin.version>
         <!-- pinning versions of application type specific maven plugins -->
         <maven.war.plugin.version>3.3.2</maven.war.plugin.version>
-        <maven.payara.micro.plugin.version>1.4.0</maven.payara.micro.plugin.version>
+        <maven.payara.micro.plugin.version>2.0</maven.payara.micro.plugin.version>
         <!-- pinning versions of cloud native specific maven plugins -->
         <maven.compose.plugin.version>4.0.0</maven.compose.plugin.version>
         <maven.docker.plugin.version>0.37.0</maven.docker.plugin.version>
@@ -78,7 +78,7 @@
     </properties>
     <dependencyManagement>
         <dependencies>
-            <!-- JakartaEE 10 runtime dependencies -->
+            <!-- JakartaEE runtime dependencies -->
             <dependency>
                 <groupId>jakarta.platform</groupId>
                 <artifactId>jakarta.jakartaee-web-api</artifactId>
@@ -114,28 +114,19 @@
         <!-- =========================== -->
         <!-- execution time dependencies -->
         <!-- =========================== -->
-        <!-- runtime environment dependencies -->
-        <!-- JakartaEE 9 runtime dependencies -->
+        <!-- common dependencies section -->
         <dependency>
             <groupId>jakarta.platform</groupId>
             <artifactId>jakarta.jakartaee-web-api</artifactId>
             <scope>provided</scope>
         </dependency>
-        <!-- Microprofile runtime dependencies -->
         <dependency>
             <groupId>org.eclipse.microprofile.jwt</groupId>
             <artifactId>microprofile-jwt-auth-api</artifactId>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.eclipse.microprofile.rest.client</groupId>
             <artifactId>microprofile-rest-client-api</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.microprofile.openapi</groupId>
-            <artifactId>microprofile-openapi-api</artifactId>
-            <scope>provided</scope>
         </dependency>
         <!-- common dependencies section -->
         <dependency>
@@ -152,6 +143,11 @@
             <groupId>group.msg.at.cloud.common</groupId>
             <artifactId>cnj-common-rest-jakarta</artifactId>
             <version>${cnj.common.rest.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>group.msg.at.cloud.common</groupId>
+            <artifactId>cnj-common-observability-jakarta</artifactId>
+            <version>${cnj.common.observability.version}</version>
         </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>
@@ -174,11 +170,6 @@
             <groupId>org.eclipse.microprofile.metrics</groupId>
             <artifactId>microprofile-metrics-api</artifactId>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>group.msg.at.cloud.common</groupId>
-            <artifactId>cnj-common-observability-jakarta</artifactId>
-            <version>${cnj.common.observability.version}</version>
         </dependency>
         <!-- showcase specific section -->
         <dependency>
@@ -251,6 +242,12 @@
                         <source>${java.version}</source>
                         <target>${java.version}</target>
                         <parameters>true</parameters>
+                        <showDeprecation>true</showDeprecation>
+                        <showWarnings>true</showWarnings>
+                        <compilerArgs>
+                            <arg>-Xlint</arg>
+                            <!-- <arg>-Xdoclint</arg> -->
+                        </compilerArgs>
                     </configuration>
                 </plugin>
                 <plugin>
@@ -842,6 +839,7 @@
                                     <systemPropertyVariables>
                                         <test.target.route>${docker.test.target.route}</test.target.route>
                                     </systemPropertyVariables>
+                                    <argLine>@{argLine}</argLine>
                                 </configuration>
                             </execution>
                             <execution>
@@ -880,6 +878,51 @@
                                     <stripVersion>true</stripVersion>
                                     <outputDirectory>${project.build.directory}/docker-resources</outputDirectory>
                                 </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.jacoco</groupId>
+                        <artifactId>jacoco-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>prepare-agent-for-unit-tests</id>
+                                <goals>
+                                    <goal>prepare-agent</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>prepare-agent-for-system-tests</id>
+                                <goals>
+                                    <goal>prepare-agent-integration</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>pull-jacoco-data-from-container</id>
+                                <goals>
+                                    <goal>dump</goal>
+                                </goals>
+                                <phase>integration-test</phase>
+                            </execution>
+                            <execution>
+                                <id>generate-report</id>
+                                <goals>
+                                    <goal>report</goal>
+                                </goals>
+                                <phase>verify</phase>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.sonarsource.scanner.maven</groupId>
+                        <artifactId>sonar-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>analyze-code</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sonar</goal>
+                                </goals>
                             </execution>
                         </executions>
                     </plugin>
