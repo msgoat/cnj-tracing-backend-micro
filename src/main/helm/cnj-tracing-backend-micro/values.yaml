@@ -5,7 +5,7 @@ nameOverride: ""
 fullnameOverride: ""
 
 pod:
-  replicaCount: 2
+  replicaCount: 1
   imagePullSecrets: []
   securityContext: {}
     # fsGroup: 2000
@@ -118,10 +118,5 @@ metrics:
 # tracing configuration
 tracing:
   enabled: true
-  jaeger:
-    service:
-      name: cnj-tracing-backend-micro
-    agent:
-      host: jaeger-agent.tracing
-      port: 6831
-    logSpans: false
+  opentelemetry:
+    endpoint: http://trace-jaeger-collector.tracing:4317
