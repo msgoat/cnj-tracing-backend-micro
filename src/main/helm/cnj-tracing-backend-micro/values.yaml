@@ -32,10 +32,10 @@ container:
       limits:
         # since JVMs tend to spike during startup we don't provide a cpu limit
         # cpu: 500m
-        memory: 2Gi
+        memory: 1Gi
       requests:
         cpu: 250m
-        memory: 2Gi
+        memory: 1Gi
     securityContext:
       capabilities:
         drop:
@@ -100,7 +100,7 @@ persistence:
     host: cnj-tracing-resources-postgresql
     port: 5432
     secret:
-      name: cnj-tracing-resources-postgres-custom
+      name: cnj-tracing-resources-postgres
       keys:
         user: postgresql-user
         password: postgresql-password

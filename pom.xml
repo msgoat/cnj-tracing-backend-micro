@@ -8,7 +8,7 @@
     <description>Cloud native Java backend using OpenTelemetry via Jaeger based on Eclipse Microprofile</description>
     <properties>
         <!-- new Maven version management -->
-        <revision>3.0.0</revision>
+        <revision>3.1.0</revision>
         <sha1>.12345678</sha1>
         <changelist>.LOCAL</changelist>
         <!-- common properties -->
@@ -159,13 +159,11 @@
             <artifactId>flyway-core</artifactId>
             <version>${flyway.version}</version>
         </dependency>
-        <!--
         <dependency>
             <groupId>group.msg.at.cloud.common</groupId>
             <artifactId>cnj-common-persistence-jakarta</artifactId>
             <version>${cnj.common.persistence.jpa.version}</version>
         </dependency>
-        -->
         <dependency>
             <groupId>org.eclipse.microprofile.metrics</groupId>
             <artifactId>microprofile-metrics-api</artifactId>

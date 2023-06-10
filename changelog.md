@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.1.0] - 2023-06-09
+- upgraded postgres to version 15
+- made persistence work with local hack
+- added docker-compose.yml to run the showcase locally
+
 ## [3.0.0] - 2023-05-31
 ### Changed
 - upgraded to Java 17
