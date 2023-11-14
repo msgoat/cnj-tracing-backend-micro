@@ -8,7 +8,7 @@
     <description>Cloud native Java backend using OpenTelemetry via Jaeger based on Eclipse Microprofile</description>
     <properties>
         <!-- new Maven version management -->
-        <revision>3.1.0</revision>
+        <revision>3.2.0</revision>
         <sha1>.12345678</sha1>
         <changelist>.LOCAL</changelist>
         <!-- common properties -->
@@ -17,23 +17,25 @@
         <!-- runtime related properties -->
         <java.version>17</java.version>
         <jakartaee.version>10.0.0</jakartaee.version>
-        <payara.version>6.2023.5</payara.version>
+        <payara.version>6.2023.10</payara.version>
         <microprofile.version>5.0</microprofile.version>
         <!-- common logging dependencies -->
         <slf4j.version>2.0.6</slf4j.version>
+        <log4j.version>2.20.0</log4j.version>
         <!-- common rest dependencies -->
         <!-- common test dependencies -->
-        <junit.version>5.8.1</junit.version>
-        <restassured.version>4.5.1</restassured.version>
+        <junit.version>5.10.0</junit.version>
+        <assertj.version>3.24.2</assertj.version>
+        <restassured.version>5.3.2</restassured.version>
+        <jackson.version>2.15.3</jackson.version>
         <!-- common persistence dependencies -->
         <flyway.version>9.19.1</flyway.version>
         <postgres.jdbc.version>42.6.0</postgres.jdbc.version>
         <!-- cloudtrain common dependencies -->
-        <cnj.common.rest.version>1.0.0</cnj.common.rest.version>
-        <cnj.common.persistence.jpa.version>1.0.0</cnj.common.persistence.jpa.version>
-        <cnj.common.observability.version>1.0.0</cnj.common.observability.version>
-        <cnj.common.test.core.version>1.1.0</cnj.common.test.core.version>
-        <cnj.common.test.jakarta.version>1.0.0</cnj.common.test.jakarta.version>
+        <cnj.common.rest.version>1.1.0</cnj.common.rest.version>
+        <cnj.common.persistence.jpa.version>1.1.0</cnj.common.persistence.jpa.version>
+        <cnj.common.observability.version>1.1.0</cnj.common.observability.version>
+        <cnj.common.test.core.version>1.2.0</cnj.common.test.core.version>
         <!-- docker related properties -->
         <docker.registry.name>docker.cloudtrain.aws.msgoat.eu</docker.registry.name>
         <docker.organization.name>cloudtrain</docker.organization.name>
@@ -62,6 +64,7 @@
         <maven.install.plugin.version>3.1.1</maven.install.plugin.version>
         <maven.jacoco.plugin.version>0.8.11</maven.jacoco.plugin.version>
         <maven.jar.plugin.version>3.3.0</maven.jar.plugin.version>
+        <maven.owasp.plugin.version>8.4.2</maven.owasp.plugin.version>
         <maven.resources.plugin.version>3.3.1</maven.resources.plugin.version>
         <maven.site.plugin.version>3.12.1</maven.site.plugin.version>
         <maven.sonar.plugin.version>3.10.0.2594</maven.sonar.plugin.version>
@@ -70,7 +73,7 @@
         <maven.war.plugin.version>3.4.0</maven.war.plugin.version>
         <!-- pinning versions of custom maven plugins -->
         <maven.compose.plugin.version>5.0.0</maven.compose.plugin.version>
-        <maven.helm.plugin.version>4.0.0</maven.helm.plugin.version>
+        <maven.helm.plugin.version>5.0.0</maven.helm.plugin.version>
         <!-- quality assurance properties -->
         <sonar.host.url>https://sonarqube.cloudtrain.aws.msgoat.eu</sonar.host.url>
         <jacoco.address>localhost</jacoco.address>
@@ -108,6 +111,14 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <!-- Jackson JSON binding required for system tests -->
+            <dependency>
+                <groupId>com.fasterxml.jackson</groupId>
+                <artifactId>jackson-bom</artifactId>
+                <version>${jackson.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
     <dependencies>
@@ -132,11 +143,6 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>${slf4j.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-jdk14</artifactId>
             <version>${slf4j.version}</version>
         </dependency>
         <dependency>
@@ -205,21 +211,38 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>${assertj.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- BEGIN: Jackson JSON binding required for system tests -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jdk8</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- END: Jackson JSON binding required for system tests -->
+        <dependency>
             <groupId>group.msg.at.cloud.common</groupId>
             <artifactId>cnj-common-test-core</artifactId>
             <version>${cnj.common.test.core.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>group.msg.at.cloud.common</groupId>
-            <artifactId>cnj-common-test-jakarta</artifactId>
-            <version>${cnj.common.test.jakarta.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-slf4j-impl</artifactId>
-            <version>2.17.0</version>
+            <artifactId>log4j-slf4j2-impl</artifactId>
+            <version>${log4j.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -391,94 +414,6 @@
         </resources>
     </build>
     <profiles>
-        <!-- profile local-stage -->
-        <!-- supposed to be run during local development -->
-        <!-- builds application and runs it -->
-        <profile>
-            <id>local-stage</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <configuration>
-                            <excludes>
-                                <exclude>**/*SystemTest.java</exclude>
-                            </excludes>
-                        </configuration>
-                    </plugin>
-                    <!--
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-dependency-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>copy-payara-custom-libs</id>
-                                <goals>
-                                    <goal>copy</goal>
-                                </goals>
-                                <phase>prepare-package</phase>
-                                <configuration>
-                                    <artifactItems>
-                                        <artifactItem>
-                                            <groupId>group.msg.at.cloud</groupId>
-                                            <artifactId>cnj-payara-opentracing-jaeger</artifactId>
-                                            <version>${payara.opentracing.jaeger.version}</version>
-                                        </artifactItem>
-                                    </artifactItems>
-                                    <stripClassifier>true</stripClassifier>
-                                    <stripVersion>true</stripVersion>
-                                    <outputDirectory>${project.build.directory}/payara/lib</outputDirectory>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    -->
-                    <plugin>
-                        <groupId>fish.payara.maven.plugins</groupId>
-                        <artifactId>payara-micro-maven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>package uber JAR</id>
-                                <goals>
-                                    <goal>bundle</goal>
-                                </goals>
-                                <phase>package</phase>
-                            </execution>
-                            <execution>
-                                <id>run uber JAR</id>
-                                <goals>
-                                    <goal>start</goal>
-                                </goals>
-                                <phase>pre-integration-test</phase>
-                            </execution>
-                        </executions>
-                        <configuration>
-                            <payaraVersion>${payara.version}</payaraVersion>
-                            <useUberJar>true</useUberJar>
-                            <commandLineOptions>
-                                <option>
-                                    <key>--disablephonehome</key>
-                                    <value></value>
-                                </option>
-                                <option>
-                                    <key>--enablehealthcheck</key>
-                                    <value>true</value>
-                                </option>
-                                <option>
-                                    <key>--nocluster</key>
-                                    <value></value>
-                                </option>
-                                <option>
-                                    <key>--nohostaware</key>
-                                    <value></value>
-                                </option>
-                            </commandLineOptions>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
         <!-- profile pre-commit-stage representing pre-commit-stage of local build -->
         <!-- supposed to be run before each push to the central GIT repository -->
         <!-- builds application; runs unit tests on application; builds docker image; runs system tests on docker container -->
@@ -552,6 +487,22 @@
                                     <outputDirectory>${project.build.directory}/compose-resources/${project.artifactId}</outputDirectory>
                                 </configuration>
                             </execution>
+                            <execution>
+                                <id>copy-helm-resources</id>
+                                <phase>process-resources</phase>
+                                <goals>
+                                    <goal>copy-resources</goal>
+                                </goals>
+                                <configuration>
+                                    <resources>
+                                        <resource>
+                                            <directory>${project.basedir}/src/main/helm/${project.artifactId}</directory>
+                                            <filtering>true</filtering>
+                                        </resource>
+                                    </resources>
+                                    <outputDirectory>${project.build.directory}/helm-resources/${project.artifactId}</outputDirectory>
+                                </configuration>
+                            </execution>
                         </executions>
                     </plugin>
                     <plugin>
@@ -622,6 +573,7 @@
                                 </goals>
                                 <phase>integration-test</phase>
                                 <configuration>
+                                    <failIfNoTests>true</failIfNoTests>
                                     <includes>
                                         <include>**/*SystemTest.java</include>
                                     </includes>
@@ -665,6 +617,22 @@
                                     <stripClassifier>true</stripClassifier>
                                     <stripVersion>true</stripVersion>
                                     <outputDirectory>${project.build.directory}/docker-resources</outputDirectory>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>group.msg.at.cloud.tools</groupId>
+                        <artifactId>helm-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>helm-lint</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>lint</goal>
+                                </goals>
+                                <configuration>
+                                    <chartDirectory>${project.build.directory}/helm-resources/${project.artifactId}</chartDirectory>
                                 </configuration>
                             </execution>
                         </executions>
@@ -744,6 +712,22 @@
                                     <outputDirectory>${project.build.directory}/compose-resources/${project.artifactId}</outputDirectory>
                                 </configuration>
                             </execution>
+                            <execution>
+                                <id>copy-helm-resources</id>
+                                <phase>process-resources</phase>
+                                <goals>
+                                    <goal>copy-resources</goal>
+                                </goals>
+                                <configuration>
+                                    <resources>
+                                        <resource>
+                                            <directory>${project.basedir}/src/main/helm/${project.artifactId}</directory>
+                                            <filtering>true</filtering>
+                                        </resource>
+                                    </resources>
+                                    <outputDirectory>${project.build.directory}/helm-resources/${project.artifactId}</outputDirectory>
+                                </configuration>
+                            </execution>
                         </executions>
                     </plugin>
                     <plugin>
@@ -756,20 +740,6 @@
                                 <goals>
                                     <goal>build</goal>
                                 </goals>
-                                <configuration>
-                                    <images>
-                                        <image>
-                                            <name>${docker.image.name}</name>
-                                            <build>
-                                                <dockerFileDir>${project.build.directory}/docker-resources
-                                                </dockerFileDir>
-                                                <tags>
-                                                    <tag>${project.version}</tag>
-                                                </tags>
-                                            </build>
-                                        </image>
-                                    </images>
-                                </configuration>
                             </execution>
                             <execution>
                                 <id>push-docker-image</id>
@@ -777,21 +747,21 @@
                                 <goals>
                                     <goal>push</goal>
                                 </goals>
-                                <configuration>
-                                    <images>
-                                        <image>
-                                            <name>${docker.image.name}</name>
-                                            <build>
-                                                <dockerFileDir>${project.build.directory}/docker-resources</dockerFileDir>
-                                                <tags>
-                                                    <tag>${project.version}</tag>
-                                                </tags>
-                                            </build>
-                                        </image>
-                                    </images>
-                                </configuration>
                             </execution>
                         </executions>
+                        <configuration>
+                            <images>
+                                <image>
+                                    <name>${docker.image.name}</name>
+                                    <build>
+                                        <dockerFileDir>${project.build.directory}/docker-resources</dockerFileDir>
+                                        <tags>
+                                            <tag>${project.version}</tag>
+                                        </tags>
+                                    </build>
+                                </image>
+                            </images>
+                        </configuration>
                     </plugin>
                     <plugin>
                         <groupId>group.msg.at.cloud.tools</groupId>
@@ -824,6 +794,33 @@
                                 </configuration>
                             </execution>
                         </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>group.msg.at.cloud.tools</groupId>
+                        <artifactId>helm-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>helm-package</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>package</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>helm-push</id>
+                                <phase>deploy</phase>
+                                <goals>
+                                    <goal>push</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <chartDirectory>${project.build.directory}/helm-resources/${project.artifactId}</chartDirectory>
+                            <chartPackageDirectory>${project.build.directory}/helm-resources</chartPackageDirectory>
+                            <chartRegistry>${docker.registry.name}</chartRegistry>
+                            <chartRepository>${docker.organization.name}-charts</chartRepository>
+                            <chartVersion>${revision}</chartVersion>
+                        </configuration>
                     </plugin>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
@@ -980,11 +977,24 @@
                             </execution>
                         </executions>
                     </plugin>
-                    <!-- install/upgrade helm release before running tests; delete helm release after running tests -->
                     <plugin>
                         <groupId>group.msg.at.cloud.tools</groupId>
                         <artifactId>helm-maven-plugin</artifactId>
                         <executions>
+                            <execution>
+                                <id>helm-pull</id>
+                                <phase>pre-integration-test</phase>
+                                <goals>
+                                    <goal>pull</goal>
+                                </goals>
+                                <configuration>
+                                    <chartRegistry>${docker.registry.name}</chartRegistry>
+                                    <chartRepository>${docker.organization.name}-charts</chartRepository>
+                                    <chartName>${project.artifactId}</chartName>
+                                    <chartVersion>${revision}</chartVersion>
+                                    <chartPackageDirectory>${project.build.directory}/helm-resources</chartPackageDirectory>
+                                </configuration>
+                            </execution>
                             <execution>
                                 <id>helm-install</id>
                                 <phase>pre-integration-test</phase>
@@ -992,11 +1002,15 @@
                                     <goal>deploy</goal>
                                 </goals>
                                 <configuration>
-                                    <chartDirectory>${project.build.directory}/helm-resources/${project.artifactId}</chartDirectory>
+                                    <chartPackageDirectory>${project.build.directory}/helm-resources</chartPackageDirectory>
                                     <releaseName>${project.artifactId}</releaseName>
                                     <namespace>${k8s.cluster.namespace}</namespace>
                                     <debug>true</debug>
-                                    <timeout>90s</timeout>
+                                    <timeout>120s</timeout>
+                                    <values>
+                                        <ingress.host>${k8s.ingress.host}</ingress.host>
+                                        <ingress.path>${k8s.ingress.path}</ingress.path>
+                                    </values>
                                 </configuration>
                             </execution>
                         </executions>

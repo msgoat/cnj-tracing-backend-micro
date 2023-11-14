@@ -6,6 +6,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.2.0] - 2023-11-14
+### Added
+- Tagging of git branch
+### Changed
+- Upgraded to helm-maven-plugin version 5.0.0
+- Now a helm chart is packaged and pushed as an artifact during the commit-stage build
+- Now the helm chart is pulled before deploying during the integration-test-stage build
+- removed dependency on cnj-common-test-jakarta by switching to model based system tests
+- added missing dependency on assertj for testing
+- upgraded Payara version to 6.2023.10
+- consolidated dependencies
+
 ## [3.1.0] - 2023-06-09
 - upgraded postgres to version 15
 - made persistence work with local hack
