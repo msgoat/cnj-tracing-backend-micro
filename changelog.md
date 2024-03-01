@@ -6,6 +6,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.3.0] - 2024-03-01
+### Added
+- commit-stage builds produce Docker images for linux/amd64 and linux/arm64/v8 platforms now
+- added JSON-B configuration class
+### Changed
+- upgraded Payara to version 6.2024.2
+- simplified POM
+- consolidated common dependencies
+- consolidated common cloudtrain dependencies
+- upgraded Java to version 21
+- upgraded Maven plugins and dependencies
+- consolidated POM with other showcases
+- consolidated system tests with other showcases
+- Docker images use Generational Z garbage collector by default
+### Fixed
+- improved test coverage measurement with Jacoco to include all coverage data in reports
+- log messages of test runs are displayed correctly now after upgrade to SLF4J 2.0.9 and using ServiceLoader for log provider lookup
+- application logs are actually written to console after (re-)adding dependency slf4j-jdk14
+
 ## [3.2.0] - 2023-11-14
 ### Added
 - Tagging of git branch

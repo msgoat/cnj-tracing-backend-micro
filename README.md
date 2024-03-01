@@ -1,6 +1,32 @@
 # cnj-tracing-backend-micro
 
-Cloud native Java backend using OpenTelemetry/MicroProfile Telemetry via Jaeger based on Eclipse Microprofile.
+Cloud native Java backend using OpenTelemetry via Jaeger based on Eclipse Microprofile.
+
+The application is packaged as a multi-architecture docker image which supports the following platforms:
+* linux/amd64
+* linux/arm64/v8
+
+## Synopsis
+
+This showcase demonstrates
+* how to enable exposure of telemetry data in OpenTelemetry format
+* how to connect your application to an OpenTelemetry backend
+
+Since OpenTelemetry superseded OpenTracing as a standard, 
+MicroProfile does not provide an extra feature for OpenTelemetry support anymore.
+All OpenTelemetry configuration is provided via MicroProfile Config compliant approaches
+like properties files, system properties or environment variables.
+
+For this showcase, `Jaeger` is used as an OpenTelemetry backend.
+
+### Enable exposure of telemetry data
+
+The OpenTelemetry feature must be enabled by setting configuration property `otel.sdk.disabled` to __false__.
+
+### Connect your application to an OpenTelemetry backend
+
+After enabling the OpenTelemetry feature, the OpenTelemetry endpoint the tracing data should be sent to must be configured
+via configuration property `otel.exporter.otlp.endpoint`.
 
 ## Status
 
@@ -10,6 +36,13 @@ Cloud native Java backend using OpenTelemetry/MicroProfile Telemetry via Jaeger 
 
 Check [changelog](changelog.md) for latest version and release information.
 
+## Docker Pull Command
+
+`docker pull docker.cloudtrain.aws.msgoat.eu/cloudtrain/cnj-tracing-backend-micro`
+
+## Helm Pull Command
+
+`helm pull oci://docker.cloudtrain.aws.msgoat.eu/cloudtrain-charts/cnj-tracing-backend-micro`
 
 ## HOW-TO build this application locally
 

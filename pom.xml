@@ -8,33 +8,32 @@
     <description>Cloud native Java backend using OpenTelemetry via Jaeger based on Eclipse Microprofile</description>
     <properties>
         <!-- new Maven version management -->
-        <revision>3.2.0</revision>
+        <revision>3.3.0</revision>
         <sha1>.12345678</sha1>
         <changelist>.LOCAL</changelist>
         <!-- common properties -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <!-- runtime related properties -->
-        <java.version>17</java.version>
+        <java.version>21</java.version>
         <jakartaee.version>10.0.0</jakartaee.version>
-        <payara.version>6.2023.10</payara.version>
-        <microprofile.version>5.0</microprofile.version>
+        <payara.version>6.2024.2</payara.version>
+        <microprofile.version>6.1</microprofile.version>
         <!-- common logging dependencies -->
-        <slf4j.version>2.0.6</slf4j.version>
-        <log4j.version>2.20.0</log4j.version>
-        <!-- common rest dependencies -->
+        <slf4j.version>2.0.11</slf4j.version>
+        <log4j.version>2.22.1</log4j.version>
         <!-- common test dependencies -->
-        <junit.version>5.10.0</junit.version>
+        <junit.version>5.10.1</junit.version>
         <assertj.version>3.24.2</assertj.version>
-        <restassured.version>5.3.2</restassured.version>
+        <restassured.version>5.4.0</restassured.version>
         <jackson.version>2.15.3</jackson.version>
         <!-- common persistence dependencies -->
         <flyway.version>9.19.1</flyway.version>
         <postgres.jdbc.version>42.6.0</postgres.jdbc.version>
         <!-- cloudtrain common dependencies -->
-        <cnj.common.rest.version>1.1.0</cnj.common.rest.version>
-        <cnj.common.persistence.jpa.version>1.1.0</cnj.common.persistence.jpa.version>
-        <cnj.common.observability.version>1.1.0</cnj.common.observability.version>
+        <cnj.common.rest.version>1.2.0</cnj.common.rest.version>
+        <cnj.common.persistence.jpa.version>1.2.0</cnj.common.persistence.jpa.version>
+        <cnj.common.observability.version>1.2.0</cnj.common.observability.version>
         <cnj.common.test.core.version>1.2.0</cnj.common.test.core.version>
         <!-- docker related properties -->
         <docker.registry.name>docker.cloudtrain.aws.msgoat.eu</docker.registry.name>
@@ -44,6 +43,7 @@
         <docker.cleanup>try</docker.cleanup>
         <docker.verbose>true</docker.verbose>
         <docker.test.target.route>http://localhost:38080</docker.test.target.route>
+        <docker.platforms>linux/amd64,linux/arm64/v8</docker.platforms>
         <!-- kubernetes related properties -->
         <k8s.cluster.route>https://${k8s.ingress.host}</k8s.cluster.route>
         <k8s.cluster.namespace>cloudtrain</k8s.cluster.namespace>
@@ -64,7 +64,7 @@
         <maven.install.plugin.version>3.1.1</maven.install.plugin.version>
         <maven.jacoco.plugin.version>0.8.11</maven.jacoco.plugin.version>
         <maven.jar.plugin.version>3.3.0</maven.jar.plugin.version>
-        <maven.owasp.plugin.version>8.4.2</maven.owasp.plugin.version>
+        <maven.owasp.plugin.version>9.0.7</maven.owasp.plugin.version>
         <maven.resources.plugin.version>3.3.1</maven.resources.plugin.version>
         <maven.site.plugin.version>3.12.1</maven.site.plugin.version>
         <maven.sonar.plugin.version>3.10.0.2594</maven.sonar.plugin.version>
@@ -72,7 +72,7 @@
         <maven.surefire.plugin.version>3.2.1</maven.surefire.plugin.version>
         <maven.war.plugin.version>3.4.0</maven.war.plugin.version>
         <!-- pinning versions of custom maven plugins -->
-        <maven.compose.plugin.version>5.0.0</maven.compose.plugin.version>
+        <maven.compose.plugin.version>5.1.0</maven.compose.plugin.version>
         <maven.helm.plugin.version>5.0.0</maven.helm.plugin.version>
         <!-- quality assurance properties -->
         <sonar.host.url>https://sonarqube.cloudtrain.aws.msgoat.eu</sonar.host.url>
@@ -132,18 +132,26 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+        <!-- need to redirect SL4J to JUL (which is used by Payara) -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-jdk14</artifactId>
+            <version>${slf4j.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
             <groupId>org.eclipse.microprofile.jwt</groupId>
             <artifactId>microprofile-jwt-auth-api</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.eclipse.microprofile.rest.client</groupId>
             <artifactId>microprofile-rest-client-api</artifactId>
-        </dependency>
-        <!-- common dependencies section -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>${slf4j.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>group.msg.at.cloud.common</groupId>
@@ -176,11 +184,6 @@
             <scope>provided</scope>
         </dependency>
         <!-- showcase specific section -->
-        <dependency>
-            <groupId>org.eclipse.microprofile.opentracing</groupId>
-            <artifactId>microprofile-opentracing-api</artifactId>
-            <scope>provided</scope>
-        </dependency>
         <!-- =========================== -->
         <!-- test time dependencies      -->
         <!-- =========================== -->
@@ -243,6 +246,13 @@
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-slf4j2-impl</artifactId>
             <version>${log4j.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- redirect Apache HTTP commons logging from JCL to SLF4J -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jcl-over-slf4j</artifactId>
+            <version>${slf4j.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -326,6 +336,11 @@
                     <artifactId>sonar-maven-plugin</artifactId>
                     <version>${maven.sonar.plugin.version}</version>
                 </plugin>
+                <plugin>
+                    <groupId>org.owasp</groupId>
+                    <artifactId>dependency-check-maven</artifactId>
+                    <version>${maven.owasp.plugin.version}</version>
+                </plugin>
                 <!-- application type specific maven plugins section -->
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -405,6 +420,323 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>fish.payara.maven.plugins</groupId>
+                <artifactId>payara-micro-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>bundle</goal>
+                        </goals>
+                        <phase>package</phase>
+                    </execution>
+                </executions>
+                <configuration>
+                    <payaraVersion>${payara.version}</payaraVersion>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>**/*SystemTest.java</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-docker-resources</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <resources>
+                                <resource>
+                                    <directory>${project.basedir}/src/main/docker</directory>
+                                    <filtering>true</filtering>
+                                </resource>
+                                <resource>
+                                    <directory>${project.build.directory}</directory>
+                                    <includes>
+                                        <include>*-microbundle.jar</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                            <outputDirectory>${project.build.directory}/docker-resources</outputDirectory>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>copy-compose-resources</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <resources>
+                                <resource>
+                                    <directory>${project.basedir}/src/test/docker/${project.artifactId}</directory>
+                                    <filtering>true</filtering>
+                                </resource>
+                            </resources>
+                            <outputDirectory>${project.build.directory}/compose-resources/${project.artifactId}</outputDirectory>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>copy-helm-resources</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <resources>
+                                <resource>
+                                    <directory>${project.basedir}/src/main/helm/${project.artifactId}</directory>
+                                    <filtering>true</filtering>
+                                </resource>
+                            </resources>
+                            <outputDirectory>${project.build.directory}/helm-resources/${project.artifactId}</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>io.fabric8</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>build-docker-image</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>build</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>push-docker-image</id>
+                        <phase>deploy</phase>
+                        <goals>
+                            <goal>push</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <images>
+                        <image>
+                            <name>${docker.image.name}</name>
+                            <build>
+                                <dockerFileDir>${project.build.directory}/docker-resources</dockerFileDir>
+                                <tags>
+                                    <tag>${project.version}</tag>
+                                </tags>
+                            </build>
+                        </image>
+                    </images>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>group.msg.at.cloud.tools</groupId>
+                <artifactId>compose-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>start-docker-containers</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>upWithLogs</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>stop-docker-containers</id>
+                        <phase>post-integration-test</phase>
+                        <goals>
+                            <goal>down</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <composeFile>
+                        ${project.build.directory}/compose-resources/${project.artifactId}/docker-compose.yml
+                    </composeFile>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>run-system-tests</id>
+                        <goals>
+                            <goal>integration-test</goal>
+                        </goals>
+                        <phase>integration-test</phase>
+                    </execution>
+                    <execution>
+                        <id>verify-system-test-results</id>
+                        <goals>
+                            <goal>verify</goal>
+                        </goals>
+                        <phase>verify</phase>
+                    </execution>
+                </executions>
+                <configuration>
+                    <failIfNoTests>true</failIfNoTests>
+                    <includes>
+                        <include>**/*SystemTest.java</include>
+                    </includes>
+                    <systemPropertyVariables>
+                        <test.target.route>${docker.test.target.route}</test.target.route>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+            <!-- quality assurance plugins -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>prepare-agent-for-unit-tests</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                        <phase>initialize</phase>
+                    </execution>
+                    <execution>
+                        <id>prepare-agent-for-system-tests</id>
+                        <goals>
+                            <goal>prepare-agent-integration</goal>
+                        </goals>
+                        <phase>pre-integration-test</phase>
+                    </execution>
+                    <execution>
+                        <id>pull-jacoco-data-from-container</id>
+                        <goals>
+                            <goal>dump</goal>
+                        </goals>
+                        <phase>integration-test</phase>
+                    </execution>
+                    <execution>
+                        <id>generate-report-unit-tests</id>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                        <phase>verify</phase>
+                    </execution>
+                    <execution>
+                        <id>generate-report-system-tests</id>
+                        <goals>
+                            <goal>report-integration</goal>
+                        </goals>
+                        <phase>verify</phase>
+                    </execution>
+                </executions>
+                <configuration>
+                    <formats>XML</formats>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-jacoco-agent-to-docker-resources</id>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <phase>prepare-package</phase>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>org.jacoco</groupId>
+                                    <artifactId>org.jacoco.agent</artifactId>
+                                    <version>${maven.jacoco.plugin.version}</version>
+                                    <classifier>runtime</classifier>
+                                </artifactItem>
+                            </artifactItems>
+                            <stripClassifier>true</stripClassifier>
+                            <stripVersion>true</stripVersion>
+                            <outputDirectory>${project.build.directory}/docker-resources</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>group.msg.at.cloud.tools</groupId>
+                <artifactId>helm-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>helm-lint</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>lint</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>helm-package</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>package</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>helm-push</id>
+                        <phase>deploy</phase>
+                        <goals>
+                            <goal>push</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <chartDirectory>${project.build.directory}/helm-resources/${project.artifactId}</chartDirectory>
+                    <chartPackageDirectory>${project.build.directory}/helm-resources</chartPackageDirectory>
+                    <chartRegistry>${docker.registry.name}</chartRegistry>
+                    <chartRepository>${docker.organization.name}-charts</chartRepository>
+                    <chartVersion>${revision}</chartVersion>
+                    <chartName>${project.artifactId}</chartName>
+                    <chartVersion>${revision}</chartVersion>
+                    <releaseName>${project.artifactId}</releaseName>
+                    <namespace>${k8s.cluster.namespace}</namespace>
+                    <debug>true</debug>
+                    <timeout>120s</timeout>
+                    <values>
+                        <ingress.host>${k8s.ingress.host}</ingress.host>
+                        <ingress.path>${k8s.ingress.path}</ingress.path>
+                    </values>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.owasp</groupId>
+                <artifactId>dependency-check-maven</artifactId>
+                <executions>
+                    <execution>
+                        <id>analyze-dependencies</id>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <phase>verify</phase>
+                    </execution>
+                </executions>
+                <configuration>
+                    <failOnError>false</failOnError>
+                    <nvdApiServerId>nist-nvd</nvdApiServerId>
+                    <formats>HTML,JSON</formats>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.sonarsource.scanner.maven</groupId>
+                <artifactId>sonar-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>analyze-code</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sonar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
         <resources>
             <resource>
@@ -419,226 +751,11 @@
         <!-- builds application; runs unit tests on application; builds docker image; runs system tests on docker container -->
         <profile>
             <id>pre-commit-stage</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <configuration>
-                            <excludes>
-                                <exclude>**/*SystemTest.java</exclude>
-                            </excludes>
-                        </configuration>
-                    </plugin>
-                    <plugin>
-                        <groupId>fish.payara.maven.plugins</groupId>
-                        <artifactId>payara-micro-maven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <goals>
-                                    <goal>bundle</goal>
-                                </goals>
-                                <phase>package</phase>
-                            </execution>
-                        </executions>
-                        <configuration>
-                            <payaraVersion>${payara.version}</payaraVersion>
-                        </configuration>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-resources-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>copy-docker-resources</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>copy-resources</goal>
-                                </goals>
-                                <configuration>
-                                    <resources>
-                                        <resource>
-                                            <directory>${project.basedir}/src/main/docker</directory>
-                                            <filtering>true</filtering>
-                                        </resource>
-                                        <resource>
-                                            <directory>${project.build.directory}</directory>
-                                            <includes>
-                                                <include>*-microbundle.jar</include>
-                                            </includes>
-                                        </resource>
-                                    </resources>
-                                    <outputDirectory>${project.build.directory}/docker-resources</outputDirectory>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>copy-compose-resources</id>
-                                <phase>process-resources</phase>
-                                <goals>
-                                    <goal>copy-resources</goal>
-                                </goals>
-                                <configuration>
-                                    <resources>
-                                        <resource>
-                                            <directory>${project.basedir}/src/test/docker/${project.artifactId}</directory>
-                                            <filtering>true</filtering>
-                                        </resource>
-                                    </resources>
-                                    <outputDirectory>${project.build.directory}/compose-resources/${project.artifactId}</outputDirectory>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>copy-helm-resources</id>
-                                <phase>process-resources</phase>
-                                <goals>
-                                    <goal>copy-resources</goal>
-                                </goals>
-                                <configuration>
-                                    <resources>
-                                        <resource>
-                                            <directory>${project.basedir}/src/main/helm/${project.artifactId}</directory>
-                                            <filtering>true</filtering>
-                                        </resource>
-                                    </resources>
-                                    <outputDirectory>${project.build.directory}/helm-resources/${project.artifactId}</outputDirectory>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>io.fabric8</groupId>
-                        <artifactId>docker-maven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>build-docker-image</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>build</goal>
-                                </goals>
-                                <configuration>
-                                    <images>
-                                        <image>
-                                            <name>${docker.image.name}</name>
-                                            <build>
-                                                <dockerFileDir>${project.build.directory}/docker-resources
-                                                </dockerFileDir>
-                                                <tags>
-                                                    <tag>${project.version}</tag>
-                                                </tags>
-                                            </build>
-                                        </image>
-                                    </images>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>group.msg.at.cloud.tools</groupId>
-                        <artifactId>compose-maven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>start-docker-containers</id>
-                                <phase>pre-integration-test</phase>
-                                <goals>
-                                    <goal>upWithLogs</goal>
-                                </goals>
-                                <configuration>
-                                    <composeFile>
-                                        ${project.build.directory}/compose-resources/${project.artifactId}/docker-compose.yml
-                                    </composeFile>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>stop-docker-containers</id>
-                                <phase>post-integration-test</phase>
-                                <goals>
-                                    <goal>down</goal>
-                                </goals>
-                                <configuration>
-                                    <composeFile>
-                                        ${project.build.directory}/compose-resources/${project.artifactId}/docker-compose.yml
-                                    </composeFile>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-failsafe-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>run-system-tests</id>
-                                <goals>
-                                    <goal>integration-test</goal>
-                                </goals>
-                                <phase>integration-test</phase>
-                                <configuration>
-                                    <failIfNoTests>true</failIfNoTests>
-                                    <includes>
-                                        <include>**/*SystemTest.java</include>
-                                    </includes>
-                                    <systemPropertyVariables>
-                                        <test.target.route>${docker.test.target.route}</test.target.route>
-                                    </systemPropertyVariables>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>verify-system-test-results</id>
-                                <goals>
-                                    <goal>verify</goal>
-                                </goals>
-                                <phase>verify</phase>
-                                <configuration>
-                                    <failIfNoTests>true</failIfNoTests>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <!-- quality assurance plugins -->
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-dependency-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>copy-jacoco-agent-to-docker-resources</id>
-                                <goals>
-                                    <goal>copy</goal>
-                                </goals>
-                                <phase>prepare-package</phase>
-                                <configuration>
-                                    <artifactItems>
-                                        <artifactItem>
-                                            <groupId>org.jacoco</groupId>
-                                            <artifactId>org.jacoco.agent</artifactId>
-                                            <version>${maven.jacoco.plugin.version}</version>
-                                            <classifier>runtime</classifier>
-                                        </artifactItem>
-                                    </artifactItems>
-                                    <stripClassifier>true</stripClassifier>
-                                    <stripVersion>true</stripVersion>
-                                    <outputDirectory>${project.build.directory}/docker-resources</outputDirectory>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>group.msg.at.cloud.tools</groupId>
-                        <artifactId>helm-maven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>helm-lint</id>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>lint</goal>
-                                </goals>
-                                <configuration>
-                                    <chartDirectory>${project.build.directory}/helm-resources/${project.artifactId}</chartDirectory>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
+            <properties>
+                <sonar.skip>true</sonar.skip>
+                <dependency-check.skip>true</dependency-check.skip>
+                <jacoco.skip>true</jacoco.skip>
+            </properties>
         </profile>
         <!-- profile commit-stage representing commit-stage of CI build -->
         <!-- builds application; runs unit tests on application; builds docker image; runs system tests on docker container; pushes docker image  -->
@@ -647,114 +764,19 @@
             <build>
                 <plugins>
                     <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <configuration>
-                            <excludes>
-                                <exclude>**/*SystemTest.java</exclude>
-                            </excludes>
-                        </configuration>
-                    </plugin>
-                    <plugin>
-                        <groupId>fish.payara.maven.plugins</groupId>
-                        <artifactId>payara-micro-maven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <goals>
-                                    <goal>bundle</goal>
-                                </goals>
-                                <phase>package</phase>
-                            </execution>
-                        </executions>
-                        <configuration>
-                            <payaraVersion>${payara.version}</payaraVersion>
-                        </configuration>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-resources-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>copy-docker-resources</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>copy-resources</goal>
-                                </goals>
-                                <configuration>
-                                    <resources>
-                                        <resource>
-                                            <directory>${project.basedir}/src/main/docker</directory>
-                                            <filtering>true</filtering>
-                                        </resource>
-                                        <resource>
-                                            <directory>${project.build.directory}</directory>
-                                            <includes>
-                                                <include>*-microbundle.jar</include>
-                                            </includes>
-                                        </resource>
-                                    </resources>
-                                    <outputDirectory>${project.build.directory}/docker-resources</outputDirectory>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>copy-compose-resources</id>
-                                <phase>process-resources</phase>
-                                <goals>
-                                    <goal>copy-resources</goal>
-                                </goals>
-                                <configuration>
-                                    <resources>
-                                        <resource>
-                                            <directory>${project.basedir}/src/test/docker/${project.artifactId}</directory>
-                                            <filtering>true</filtering>
-                                        </resource>
-                                    </resources>
-                                    <outputDirectory>${project.build.directory}/compose-resources/${project.artifactId}</outputDirectory>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>copy-helm-resources</id>
-                                <phase>process-resources</phase>
-                                <goals>
-                                    <goal>copy-resources</goal>
-                                </goals>
-                                <configuration>
-                                    <resources>
-                                        <resource>
-                                            <directory>${project.basedir}/src/main/helm/${project.artifactId}</directory>
-                                            <filtering>true</filtering>
-                                        </resource>
-                                    </resources>
-                                    <outputDirectory>${project.build.directory}/helm-resources/${project.artifactId}</outputDirectory>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
                         <groupId>io.fabric8</groupId>
                         <artifactId>docker-maven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>build-docker-image</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>build</goal>
-                                </goals>
-                            </execution>
-                            <execution>
-                                <id>push-docker-image</id>
-                                <phase>install</phase>
-                                <goals>
-                                    <goal>push</goal>
-                                </goals>
-                            </execution>
-                        </executions>
                         <configuration>
                             <images>
                                 <image>
                                     <name>${docker.image.name}</name>
                                     <build>
                                         <dockerFileDir>${project.build.directory}/docker-resources</dockerFileDir>
+                                        <buildx>
+                                            <platforms>
+                                                <platform>${docker.platforms}</platform>
+                                            </platforms>
+                                        </buildx>
                                         <tags>
                                             <tag>${project.version}</tag>
                                         </tags>
@@ -762,169 +784,6 @@
                                 </image>
                             </images>
                         </configuration>
-                    </plugin>
-                    <plugin>
-                        <groupId>group.msg.at.cloud.tools</groupId>
-                        <artifactId>compose-maven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>start-docker-containers</id>
-                                <phase>pre-integration-test</phase>
-                                <goals>
-                                    <goal>upWithLogs</goal>
-                                </goals>
-                                <configuration>
-                                    <composeFile>
-                                        ${project.build.directory}/compose-resources/${project.artifactId}/docker-compose.yml
-                                    </composeFile>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>stop-docker-containers</id>
-                                <phase>post-integration-test</phase>
-                                <goals>
-                                    <goal>down</goal>
-                                </goals>
-                                <configuration>
-                                    <composeFile>
-                                        ${project.build.directory}/compose-resources/${project.artifactId}/docker-compose.yml
-                                    </composeFile>
-                                    <removeVolumes>true</removeVolumes>
-                                    <removeOrphans>true</removeOrphans>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>group.msg.at.cloud.tools</groupId>
-                        <artifactId>helm-maven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>helm-package</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>package</goal>
-                                </goals>
-                            </execution>
-                            <execution>
-                                <id>helm-push</id>
-                                <phase>deploy</phase>
-                                <goals>
-                                    <goal>push</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                        <configuration>
-                            <chartDirectory>${project.build.directory}/helm-resources/${project.artifactId}</chartDirectory>
-                            <chartPackageDirectory>${project.build.directory}/helm-resources</chartPackageDirectory>
-                            <chartRegistry>${docker.registry.name}</chartRegistry>
-                            <chartRepository>${docker.organization.name}-charts</chartRepository>
-                            <chartVersion>${revision}</chartVersion>
-                        </configuration>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-failsafe-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>run-system-tests</id>
-                                <goals>
-                                    <goal>integration-test</goal>
-                                </goals>
-                                <phase>integration-test</phase>
-                                <configuration>
-                                    <includes>
-                                        <include>**/*SystemTest.java</include>
-                                    </includes>
-                                    <systemPropertyVariables>
-                                        <test.target.route>${docker.test.target.route}</test.target.route>
-                                    </systemPropertyVariables>
-                                    <argLine>@{argLine}</argLine>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>verify-system-test-results</id>
-                                <goals>
-                                    <goal>verify</goal>
-                                </goals>
-                                <phase>verify</phase>
-                                <configuration>
-                                    <failIfNoTests>true</failIfNoTests>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <!-- quality assurance plugins -->
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-dependency-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>copy-jacoco-agent-to-docker-resources</id>
-                                <goals>
-                                    <goal>copy</goal>
-                                </goals>
-                                <phase>prepare-package</phase>
-                                <configuration>
-                                    <artifactItems>
-                                        <artifactItem>
-                                            <groupId>org.jacoco</groupId>
-                                            <artifactId>org.jacoco.agent</artifactId>
-                                            <version>${maven.jacoco.plugin.version}</version>
-                                            <classifier>runtime</classifier>
-                                        </artifactItem>
-                                    </artifactItems>
-                                    <stripClassifier>true</stripClassifier>
-                                    <stripVersion>true</stripVersion>
-                                    <outputDirectory>${project.build.directory}/docker-resources</outputDirectory>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.jacoco</groupId>
-                        <artifactId>jacoco-maven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>prepare-agent-for-unit-tests</id>
-                                <goals>
-                                    <goal>prepare-agent</goal>
-                                </goals>
-                            </execution>
-                            <execution>
-                                <id>prepare-agent-for-system-tests</id>
-                                <goals>
-                                    <goal>prepare-agent-integration</goal>
-                                </goals>
-                            </execution>
-                            <execution>
-                                <id>pull-jacoco-data-from-container</id>
-                                <goals>
-                                    <goal>dump</goal>
-                                </goals>
-                                <phase>integration-test</phase>
-                            </execution>
-                            <execution>
-                                <id>generate-report</id>
-                                <goals>
-                                    <goal>report</goal>
-                                </goals>
-                                <phase>verify</phase>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.sonarsource.scanner.maven</groupId>
-                        <artifactId>sonar-maven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>analyze-code</id>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>sonar</goal>
-                                </goals>
-                            </execution>
-                        </executions>
                     </plugin>
                 </plugins>
             </build>
@@ -934,7 +793,11 @@
         <profile>
             <id>integration-test-stage</id>
             <properties>
-                <maven.install.skip>true</maven.install.skip>
+                <sonar.skip>true</sonar.skip>
+                <compose.skip>true</compose.skip>
+                <docker.skip>true</docker.skip>
+                <dependency-check.skip>true</dependency-check.skip>
+                <jacoco.skip>true</jacoco.skip>
             </properties>
             <build>
                 <plugins>
@@ -946,37 +809,7 @@
                             <skip>true</skip>
                         </configuration>
                     </plugin>
-                    <!-- skip WAR packaging, since we are working with an already built artifact -->
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-war-plugin</artifactId>
-                        <configuration>
-                            <skip>true</skip>
-                        </configuration>
-                    </plugin>
-                    <!-- copy resources for helm deployment applying filtering -->
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-resources-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>copy-helm-resources</id>
-                                <phase>process-resources</phase>
-                                <goals>
-                                    <goal>copy-resources</goal>
-                                </goals>
-                                <configuration>
-                                    <resources>
-                                        <resource>
-                                            <directory>${project.basedir}/src/main/helm/${project.artifactId}</directory>
-                                            <filtering>true</filtering>
-                                        </resource>
-                                    </resources>
-                                    <outputDirectory>${project.build.directory}/helm-resources/${project.artifactId}</outputDirectory>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
+                    <!-- pull helm chart and deploy it -->
                     <plugin>
                         <groupId>group.msg.at.cloud.tools</groupId>
                         <artifactId>helm-maven-plugin</artifactId>
@@ -987,31 +820,13 @@
                                 <goals>
                                     <goal>pull</goal>
                                 </goals>
-                                <configuration>
-                                    <chartRegistry>${docker.registry.name}</chartRegistry>
-                                    <chartRepository>${docker.organization.name}-charts</chartRepository>
-                                    <chartName>${project.artifactId}</chartName>
-                                    <chartVersion>${revision}</chartVersion>
-                                    <chartPackageDirectory>${project.build.directory}/helm-resources</chartPackageDirectory>
-                                </configuration>
                             </execution>
                             <execution>
-                                <id>helm-install</id>
+                                <id>helm-deploy</id>
                                 <phase>pre-integration-test</phase>
                                 <goals>
                                     <goal>deploy</goal>
                                 </goals>
-                                <configuration>
-                                    <chartPackageDirectory>${project.build.directory}/helm-resources</chartPackageDirectory>
-                                    <releaseName>${project.artifactId}</releaseName>
-                                    <namespace>${k8s.cluster.namespace}</namespace>
-                                    <debug>true</debug>
-                                    <timeout>120s</timeout>
-                                    <values>
-                                        <ingress.host>${k8s.ingress.host}</ingress.host>
-                                        <ingress.path>${k8s.ingress.path}</ingress.path>
-                                    </values>
-                                </configuration>
                             </execution>
                         </executions>
                     </plugin>
@@ -1019,34 +834,12 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-failsafe-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>run-system-tests</id>
-                                <goals>
-                                    <goal>integration-test</goal>
-                                </goals>
-                                <phase>integration-test</phase>
-                                <configuration>
-                                    <includes>
-                                        <include>**/*SystemTest.java</include>
-                                    </includes>
-                                    <systemPropertyVariables>
-                                        <test.target.route>${k8s.test.target.route}</test.target.route>
-                                        <test.target.readinessProbe.initialDelaySeconds>0</test.target.readinessProbe.initialDelaySeconds>
-                                    </systemPropertyVariables>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>verify-system-test-results</id>
-                                <goals>
-                                    <goal>verify</goal>
-                                </goals>
-                                <phase>verify</phase>
-                                <configuration>
-                                    <failIfNoTests>true</failIfNoTests>
-                                </configuration>
-                            </execution>
-                        </executions>
+                        <configuration>
+                            <systemPropertyVariables>
+                                <test.target.route>${k8s.test.target.route}</test.target.route>
+                                <test.target.readinessProbe.initialDelaySeconds>0</test.target.readinessProbe.initialDelaySeconds>
+                            </systemPropertyVariables>
+                        </configuration>
                     </plugin>
                 </plugins>
             </build>

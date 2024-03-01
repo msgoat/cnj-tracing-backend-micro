@@ -1,4 +1,4 @@
-FROM docker.cloudtrain.aws.msgoat.eu/cloudtrain/cnj-docker-jre17-alpine:latest
+FROM docker.cloudtrain.aws.msgoat.eu/cloudtrain/cnj-docker-jre21-alpine:latest
 
 LABEL maintainer="michael.theis@msg.group"
 LABEL ${project.groupId}.${project.artifactId}.project="CloudTrain"
@@ -10,19 +10,19 @@ ARG ARG_JAVA_APPLICATION_HOME=/home/payara
 
 ENV JAVA_APPLICATION=${ARG_JAVA_APPLICATION} \
     JAVA_APPLICATION_HOME=${ARG_JAVA_APPLICATION_HOME} \
-    JAVA_OPTS="-XshowSettings:vm -XX:+DisableExplicitGC -XX:+UseStringDeduplication -XX:+ParallelRefProcEnabled" \
+    JAVA_OPTS="-XshowSettings:vm -XX:+UseZGC -XX:+ZGenerational -XX:+DisableExplicitGC -XX:+UseStringDeduplication -XX:+ParallelRefProcEnabled -Dfile.encoding=UTF-8" \
     EXT_JAVA_OPTS="" \
     AGENT_JAVA_OPTS="" \
-    DOCKER_JAVA_OPTS="-XX:InitialRAMPercentage=75.0 -XX:MaxRAMPercentage=75.0" \
+    DOCKER_JAVA_OPTS="-XX:+UseContainerSupport -XX:InitialRAMPercentage=75.0 -XX:MaxRAMPercentage=75.0" \
     PAYARA_JAVA_OPTS="-Djavax.net.ssl.trustStore=$JAVA_HOME/lib/security/cacerts" \
     PAYARA_ARGUMENTS="--disablephonehome --enablehealthcheck true --nocluster --nohostaware" \
     PAYARA_LOGGING_FORMAT="JSON"
 
 EXPOSE 8080
 
-RUN echo "adding run user payara to system" && \
-    addgroup --gid 1000 --system payara && \
-    adduser -S -D -G payara -u 1000 payara
+RUN echo "adding non-root user payara to system" && \
+    addgroup -S payara -g 1000 && \
+    adduser -S payara -u 1000 -G payara
 
 # copy entrypoint script
 COPY docker-entrypoint.sh /
