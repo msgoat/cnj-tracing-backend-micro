@@ -32,10 +32,10 @@ container:
       limits:
         # since JVMs tend to spike during startup we don't provide a cpu limit
         # cpu: 500m
-        memory: 1Gi
+        memory: 2Gi
       requests:
         cpu: 250m
-        memory: 1Gi
+        memory: 2Gi
     securityContext:
       capabilities:
         drop:
@@ -119,4 +119,4 @@ metrics:
 tracing:
   enabled: true
   opentelemetry:
-    endpoint: http://trace-jaeger-collector.tracing:4317
+    endpoint: http://tracing-jaeger-collector.tracing:4317
